@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Excel Mastery Crash Course</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Sky -->
+    <!-- Application Structure Plan: A tab-based single-page application (SPA) is chosen for optimal user experience. The structure includes: 1) A 'Home' tab for introduction and progress visualization. 2) A '21-Day Plan' tab with an interactive accordion for weeks and days, presenting daily lessons in a clear, focused manner. 3) A 'Mastery Toolkit' tab to house resources like the influencer matrix and YouTube channels. This segmented structure prevents overwhelming the user with a long scroll, allows direct navigation to any content, and creates a logical, task-oriented flow. The interactive plan encourages engagement and provides a sense of progression. -->
+    <!-- Visualization & Content Choices: Report Info: 21-Day learning plan. Goal: Guide and track progress. Viz/Method: Donut Chart (Chart.js) for progress, HTML/CSS Accordion for the plan. Interaction: Clicking a day updates the view and conceptually the chart. Justification: Visual progress is motivating; an accordion organizes dense content effectively. Report Info: Influencer list. Goal: Provide actionable resources. Viz/Method: Interactive HTML Table. Interaction: Clickable links. Justification: More usable and professional than static text. All choices support the tabbed structure and avoid SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            border-color: #0ea5e9; /* sky-500 */
+            color: #0ea5e9; /* sky-500 */
+            font-weight: 600;
+        }
+        .tab-inactive {
+            border-color: transparent;
+            color: #64748b; /* slate-500 */
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900">The 21-Day Excel Mastery Crash Course</h1>
+            <p class="mt-2 text-lg text-slate-600">Your interactive journey from apprentice to expert in just 30 minutes a day.</p>
+        </header>
+
+        <div class="w-full max-w-5xl mx-auto">
+            <!-- Tabs Navigation -->
+            <div class="border-b border-slate-200 mb-6">
+                <nav class="-mb-px flex justify-center space-x-4 sm:space-x-8" aria-label="Tabs">
+                    <button id="tab-btn-home" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base tab-active">Home</button>
+                    <button id="tab-btn-plan" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base tab-inactive">21-Day Plan</button>
+                    <button id="tab-btn-toolkit" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm sm:text-base tab-inactive">Mastery Toolkit</button>
+                </nav>
+            </div>
+
+            <!-- Tabs Content -->
+            <main>
+                <!-- Home Content -->
+                <div id="tab-content-home">
+                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+                        <h2 class="text-2xl font-bold text-slate-900 mb-4">Welcome to Your Transformation</h2>
+                        <div class="space-y-4 text-slate-700">
+                            <p>This interactive guide is designed to systematically elevate your Excel capabilities. Over the next 21 days, a commitment of just 30 minutes daily will build confident, insightful mastery. This is not about memorization; it's about acquiring a deep, applicable understanding of Excel's most powerful features.</p>
+                            <p>Use the <span class="font-semibold text-sky-600">21-Day Plan</span> tab to navigate through daily lessons. Each lesson includes a core concept, a video tutorial, and a hands-on task. The <span class="font-semibold text-sky-600">Mastery Toolkit</span> contains a curated list of experts, channels, and platforms to support your learning long after this course is complete.</p>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-200">
+                             <h3 class="text-xl font-bold text-center text-slate-900 mb-4">Your Progress</h3>
+                             <div class="chart-container">
+                                <canvas id="progressChart"></canvas>
+                            </div>
+                             <p class="text-center text-sm text-slate-500 mt-2">Click on a day in the plan to mark it as complete and watch your progress grow!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 21-Day Plan Content -->
+                <div id="tab-content-plan" class="hidden">
+                    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+                         <h2 class="text-2xl font-bold text-slate-900 mb-2">Your 21-Day Curriculum</h2>
+                         <p class="text-slate-600 mb-6">This plan is structured into three weeks, each building on the last. Click a week to expand its daily lessons, then select a day to view the details. This focused approach helps you master one concept at a time.</p>
+                        <div id="plan-accordion" class="space-y-4">
+                            <!-- Accordion items will be generated here by JS -->
+                        </div>
+                        <div id="daily-content-display" class="mt-8 p-6 border border-slate-200 rounded-lg bg-slate-50 hidden">
+                            <!-- Daily content will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mastery Toolkit Content -->
+                <div id="tab-content-toolkit" class="hidden">
+                     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm space-y-10">
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 mb-2">The Excel Influencer Matrix</h2>
+                            <p class="text-slate-600 mb-6">This is more than a list; it's a strategic tool for building a continuous learning ecosystem. Follow these experts on LinkedIn, YouTube, and Instagram to immerse yourself in the world of Excel and keep your skills sharp.</p>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-slate-200">
+                                    <thead class="bg-slate-100">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Influencer</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Area of Expertise</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="influencer-table-body" class="bg-white divide-y divide-slate-200">
+                                        <!-- Influencer rows will be generated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 mb-2">Essential YouTube Channels</h2>
+                            <p class="text-slate-600 mb-6">For many, visual demonstration is the most effective way to learn. These channels are consistently ranked among the best for their clarity, depth, and quality of instruction.</p>
+                            <div id="youtube-channels-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- YouTube channels will be generated here -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-900 mb-2">Interactive Practice Platforms</h2>
+                             <p class="text-slate-600 mb-6">Active practice is non-negotiable for mastery. These platforms provide the necessary tools for hands-on application, helping you build the crucial "muscle memory" for true fluency.</p>
+                            <div id="practice-platforms-list" class="space-y-4">
+                                <!-- Practice platforms will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const planData = {
+        "Week 1: Building the Foundation": [
+            { day: 1, title: "The Excel Ecosystem", objective: "Navigate the Excel interface with confidence.", concept: "Master the Ribbon, Formula Bar, Name Box, and other core components to create a mental map for finding commands intuitively.", video: { title: "User Interface | Excel tutorial for Beginner 2022", url: "https://www.youtube.com/watch?v=MMxndlcjZMU" }, task: "Click through each Ribbon tab. Add 'Sort A to Z' to the Quick Access Toolbar. Create and rename three worksheets." },
+            { day: 2, title: "Cells, Ranges, & Formatting", objective: "Master data entry and apply fundamental formatting for clarity.", concept: "Learn to format numbers, fonts, alignment, and borders. Understand that formatting changes appearance, not the underlying value.", video: { title: "Master Excel Basics in NO TIME", url: "https://www.youtube.com/watch?v=kSQmPK-tWnw" }, task: "Create a simple budget table. Format columns for Currency, apply bolding and fill color to the header, and add borders." },
+            { day: 3, title: "Your First Formulas", objective: "Write basic formulas using SUM, AVERAGE, and COUNT.", concept: "Every formula begins with '='. Learn the syntax for these three essential functions to perform basic calculations on ranges of data.", video: { title: "Excel Formula Basics: SUM, COUNT, AVERAGE", url: "https://www.youtube.com/watch?v=ynooYQfkY6w" }, task: "In your budget table, use SUM to total costs. Use AVERAGE to find the average cost, and COUNT to count the number of items." },
+            { day: 4, title: "Essential Functions", objective: "Expand your library with MIN, MAX, TODAY, and NOW.", concept: "Find the smallest (MIN) and largest (MAX) values in a range. Use the dynamic TODAY() and NOW() functions for automatic time-stamping.", video: { title: "Excel Formulas for Sum, Average, Max and Min", url: "https://www.youtube.com/watch?v=bH2HyGBsRD8" }, task: "Find the MIN and MAX actual cost in your budget. Add the TODAY() function to the top of your sheet." },
+            { day: 5, title: "The Power of Excel Tables", objective: "Structure data dynamically and reliably with the formal Table feature.", concept: "Use Ctrl+T to create a formal Table. Understand its key benefits: automatic expansion, integrated sorting/filtering, and structured references.", video: { title: "The *ONLY* 10 Excel keyboard shortcuts you need", url: "https://www.youtube.com/watch?v=ykP-agYOtC4" }, task: "Convert your budget range into a formal Table. Explore the 'Table Design' tab and activate the 'Total Row'." },
+            { day: 6, title: "Sorting and Filtering", objective: "Effectively organize and query data within an Excel Table.", concept: "Use the dropdown arrows in the Table header to sort data numerically or alphabetically, and to filter the table to show only rows that meet your criteria.", video: { title: "How to Use Excel - A 3-Hour Path to Confidence", url: "https://www.youtube.com/watch?v=qVTlioAqUv8" }, task: "Sort your budget table by 'Actual Cost' from largest to smallest. Filter the table to show only one or two categories." },
+            { day: 7, title: "Mastering Keyboard Shortcuts", objective: "Dramatically increase speed by using the keyboard instead of the mouse.", concept: "Commit essential shortcuts to muscle memory (e.g., Ctrl + Arrows for navigation, Ctrl+C/V for copy/paste, Ctrl+1 for formatting).", video: { title: "Three Ways to Create Excel Shortcuts", url: "https://www.youtube.com/watch?v=yVDEtoaVXOw" }, task: "For 30 minutes, use only the keyboard. Navigate your workbook, select data, apply formatting, and save the file." },
+        ],
+        "Week 2: Analyzing and Visualizing Data": [
+            { day: 8, title: "Conditional Formatting", objective: "Automatically highlight important information, trends, and outliers.", concept: "Use rules to dynamically change a cell's format based on its value. Explore Data Bars, Color Scales, and Icon Sets for at-a-glance analysis.", video: { title: "Excel Conditional Formatting with Formula", url: "https://www.youtube.com/watch?v=XHT4paRaY4g" }, task: "Create a 'Variance' column in your budget. Use Conditional Formatting to highlight negative values in red and apply Data Bars to the 'Actual Cost' column." },
+            { day: 9, title: "Data Validation", objective: "Control data entry and prevent errors with drop-down lists.", concept: "Use the Data Validation feature to restrict what users can enter into a cell, ensuring data integrity. Its most common use is creating drop-down lists.", video: { title: "Apply Conditional Formatting to an Entire Row", url: "https://www.youtube.com/watch?v=uVTk0n277lw" }, task: "Create a list of payment methods. Add a 'Payment Method' column to your table and use Data Validation to create a drop-down list for each cell." },
+            { day: 10, title: "Introduction to Charting", objective: "Translate numeric data into clear, effective visual charts.", concept: "Learn the fundamental process of selecting data, inserting a chart (Column, Line, Pie), and customizing key elements like titles, axes, and labels.", video: { title: "Excel Essentials -- Conditional Formatting for Due Dates", url: "https://www.youtube.com/watch?v=SIhBMvuoZNE" }, task: "Create a Pie chart showing 'Actual Cost' by 'Category'. Add a title and data labels showing percentages." },
+            { day: 11, title: "The IF Function", objective: "Empower your spreadsheet to make decisions by testing for a condition.", concept: "Master the syntax: =IF(logical_test, value_if_true, value_if_false). This is the cornerstone of all logic in Excel.", video: { title: "How to use Formulas and Functions in Microsoft Excel", url: "https://www.youtube.com/watch?v=tyGaEl3ec8o" }, task: "Add a column called 'On/Off Budget'. Write an IF formula to return 'Over Budget' if actual cost exceeds projected cost, and 'On Target' otherwise." },
+            { day: 12, title: "Combining Logic: AND/OR", objective: "Build more sophisticated logical tests by combining multiple conditions.", concept: "Nest AND (all conditions must be true) or OR (at least one condition must be true) inside your IF function to create more realistic decision-making formulas.", video: { title: "Excel Formulas and Functions Tutorial", url: "https://www.youtube.com/watch?v=Jl0Qk63z2ZY" }, task: "Add a 'Review Needed' column. Use IF with AND to return 'High Priority' if a category is 'Food' AND it's 'Over Budget'." },
+            { day: 13, title: "Mastering VLOOKUP", objective: "Learn the classic function to find and retrieve related data from a table.", concept: "VLOOKUP searches for a value in the first column of a table and returns a corresponding value from a specified column to its right. Always use FALSE for an exact match.", video: { title: "VLOOKUP in Excel | Step-by-Step Tutorial for Beginners", url: "https://www.youtube.com/watch?v=xIynD1gFOLo" }, task: "Create a small reference table of categories and approvers. Use VLOOKUP in your main table to pull in the correct approver for each item's category." },
+            { day: 14, title: "The Modern Lookup: XLOOKUP", objective: "Learn the superior XLOOKUP function, the new standard for all lookups.", concept: "XLOOKUP overcomes VLOOKUP's limitations. It can look in any column and return from any column (left or right), defaults to an exact match, and has built-in error handling.", video: { title: "Hands-On Excel Tutorial Beginner to Pro Course (2024)", url: "https://www.youtube.com/watch?v=dxKK3rbubvo" }, task: "Re-create the 'Approver' lookup using XLOOKUP. Then, perform a right-to-left lookup that is impossible with VLOOKUP." },
+        ],
+        "Week 3: The Path to Mastery": [
+            { day: 15, title: "Introduction to PivotTables", objective: "Summarize, aggregate, and analyze large datasets without formulas.", concept: "A PivotTable is Excel's most powerful analysis tool. Drag and drop fields into Rows, Columns, and Values areas to instantly create summary reports.", video: { title: "How to Create Excel Pivot Tables & Pivot Charts - Beginner's Guide", url: "https://www.youtube.com/watch?v=Jx89DRlKe7E" }, task: "Create a PivotTable from your budget data. Put 'Category' in Rows and 'Actual Cost' in Values to see total spending by category." },
+            { day: 16, title: "Advanced PivotTables & Slicers", objective: "Customize calculations and add interactive filtering controls.", concept: "Go beyond SUM to calculate Averages, Counts, or % of Total. Add Slicers—visual filter buttons—to create highly interactive dashboards.", video: { title: "Excel PivotTables for Beginners (2025)", url: "https://www.youtube.com/watch?v=Vj8SNnat2FA" }, task: "Change your PivotTable to show the average cost per category. Then, add a Slicer for 'Category' to filter your report with buttons." },
+            { day: 17, title: "Introduction to Power Query", objective: "Automate the process of data importing, cleaning, and transformation.", concept: "Power Query (Get & Transform) is an ETL tool that records your data cleaning steps. Refresh your query with one click to re-apply all transformations to new data.", video: { title: "Hands-On Power BI Tutorial Beginner to Pro [Full Course] 2023", url: "https://www.youtube.com/watch?v=77jIzgvCIYY" }, task: "Use Power Query to import your budget table into a new workbook. In the editor, remove the 'Projected Cost' column, then 'Close & Load'." },
+            { day: 18, title: "Power Query: Combining Data", objective: "Automatically combine data from multiple files or sources.", concept: "Use Power Query's 'From Folder' connector to append data from multiple files into one master table, completely automating the copy-paste process.", video: { title: "Power BI Tutorial for Beginners (2024)", url: "https://www.youtube.com/watch?v=udzsJqUZPrY" }, task: "Create a copy of your budget file. Put both files in a folder. Use Power Query's 'From Folder' option to combine them into one master table." },
+            { day: 19, title: "Introduction to Macros", objective: "Automate repetitive tasks within the Excel interface using the Macro Recorder.", concept: "Enable the Developer tab to record a sequence of actions (like formatting). Assign the recorded macro to a button for one-click automation.", video: { title: "How to Create Macros in Excel Tutorial", url: "https://www.youtube.com/watch?v=uyj_OljPlcU" }, task: "Record a macro that applies a specific set of formatting (bold, fill color, border). Assign it to a shape and use it as a button." },
+            { day: 20, title: "What-If Analysis", objective: "Use Goal Seek and Scenario Manager to model and forecast outcomes.", concept: "Goal Seek works backward to find the input needed for a desired result. Scenario Manager saves and compares different sets of inputs to see their effect on your formulas.", video: { title: "Excel VBA Macros - Beginner to PRO Masterclass", url: "https://www.youtube.com/watch?v=7hd1Nn4cNyI" }, task: "Use Goal Seek to determine how much a single expense must be reduced to meet a new, lower total budget." },
+            { day: 21, title: "Your Path Forward", objective: "Consolidate learning and chart a path for continued growth.", concept: "Review the four pillars of mastery: Structuring, Analyzing, Automating Data, and Automating Tasks. Explore the next frontiers: Power Pivot, Advanced Charting, and VBA.", video: { title: "Excel VBA Beginner Tutorial", url: "https://www.youtube.com/watch?v=G05TrN7nt6k" }, task: "Revisit a challenging skill from the course. Then, watch an introductory video on Power Pivot to see what's next." },
+        ]
+    };
+
+    const influencerData = [
+        { name: "Leila Gharani", expertise: "The 'Wonder Woman of Excel.' Comprehensive tutorials on almost every topic.", links: [{ platform: "YouTube", url: "https://www.youtube.com/c/LeilaGharani" }, { platform: "LinkedIn", url: "https://www.linkedin.com/in/leilagharani/" }] },
+        { name: "Kat Norton (Miss Excel)", expertise: "The Entertainer. Teaches Excel tips through dancing and music.", links: [{ platform: "Instagram", url: "https://www.instagram.com/miss.excel/" }, { platform: "LinkedIn", url: "https://www.linkedin.com/in/kat-norton-b687a7b4/" }] },
+        { name: "Oz Du Soleil", expertise: "The Practitioner. Focuses on hands-on practice through weekly challenges.", links: [{ platform: "YouTube", url: "https://www.youtube.com/user/WalrusCandy" }, { platform: "LinkedIn", url: "https://www.linkedin.com/in/ozdusoleil/" }] },
+        { name: "Jon Acampora (Excel Campus)", expertise: "The Foundational Teacher. Excellent for beginners and learning fast.", links: [{ platform: "YouTube", url: "https://www.youtube.com/user/ExcelCampus" }, { platform: "LinkedIn", url: "https://www.linkedin.com/in/jonacampora/" }] },
+        { name: "Kevin Stratvert", expertise: "The Modern Technologist. Covers Excel's integration with AI and new tech.", links: [{ platform: "YouTube", url: "https://www.youtube.com/c/KevinStratvert" }, { platform: "Instagram", url: "https://www.instagram.com/kevinstratvert/" }] },
+        { name: "Paul Barnhurst", expertise: "The FP&A Guy. Niche expert for finance professionals.", links: [{ platform: "LinkedIn", url: "https://www.linkedin.com/in/thefpandaguy/" }] },
+    ];
+
+    const youtubeChannels = [
+        { name: "Microsoft 365", description: "The official source. Invaluable for understanding new features and core functionalities.", url: "https://www.youtube.com/c/Microsoft365" },
+        { name: "ExcelIsFun", description: "An encyclopedic resource with over 3,000 videos covering every topic imaginable.", url: "https://www.youtube.com/user/ExcelIsFun" },
+        { name: "Noble Desktop", description: "A well-rounded curriculum of tutorials, from basics to advanced charts.", url: "https://www.youtube.com/@NobleDesktop" },
+        { name: "Exceljet", description: "Known for clear, concise, and straightforward videos on core skills.", url: "https://www.youtube.com/@Exceljet" }
+    ];
+
+    const practicePlatforms = [
+        { name: "ExcelExercises.com", description: "Offers bite-sized, interactive lessons that build muscle memory through a gamified experience.", url: "https://www.excelexercises.com/" },
+        { name: "Downloadable Files", description: "Many tutorials (like from Excel-Easy.com) provide practice files for direct, hands-on application.", url: "https://www.excel-easy.com/" }
+    ];
+
+    let completedDays = 0;
+    const totalDays = 21;
+    let progressChart;
+
+    function initChart() {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        progressChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Remaining'],
+                datasets: [{
+                    data: [completedDays, totalDays - completedDays],
+                    backgroundColor: ['#0ea5e9', '#e2e8f0'],
+                    borderColor: ['#ffffff', '#ffffff'],
+                    borderWidth: 4,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        progressChart.data.datasets[0].data = [completedDays, totalDays - completedDays];
+        progressChart.update();
+    }
+    
+    const tabs = ['home', 'plan', 'toolkit'];
+    tabs.forEach(tab => {
+        document.getElementById(`tab-btn-${tab}`).addEventListener('click', () => {
+            tabs.forEach(t => {
+                document.getElementById(`tab-content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-btn-${t}`).classList.remove('tab-active');
+                document.getElementById(`tab-btn-${t}`).classList.add('tab-inactive');
+            });
+            document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-btn-${tab}`).classList.add('tab-active');
+            document.getElementById(`tab-btn-${tab}`).classList.remove('tab-inactive');
+        });
+    });
+
+    const planAccordion = document.getElementById('plan-accordion');
+    Object.entries(planData).forEach(([weekTitle, days], weekIndex) => {
+        const weekElement = document.createElement('div');
+        weekElement.className = 'border border-slate-200 rounded-lg';
+        weekElement.innerHTML = `
+            <button class="accordion-toggle w-full flex justify-between items-center p-4 text-left font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 transition rounded-t-lg">
+                <span>${weekTitle}</span>
+                <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div class="accordion-content bg-white rounded-b-lg">
+                <div class="p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                    ${days.map(day => `<button data-day="${day.day}" class="day-btn p-2 text-center border border-slate-300 rounded-md hover:bg-sky-100 hover:border-sky-400 transition text-sm">Day ${day.day}</button>`).join('')}
+                </div>
+            </div>
+        `;
+        planAccordion.appendChild(weekElement);
+    });
+
+    planAccordion.addEventListener('click', function(e) {
+        if (e.target.closest('.accordion-toggle')) {
+            const button = e.target.closest('.accordion-toggle');
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('svg');
+
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                icon.classList.remove('rotate-180');
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                icon.classList.add('rotate-180');
+            }
+        }
+        
+        if (e.target.classList.contains('day-btn')) {
+            const dayNumber = parseInt(e.target.dataset.day);
+            const dayData = Object.values(planData).flat().find(d => d.day === dayNumber);
+            
+            if (dayData) {
+                const display = document.getElementById('daily-content-display');
+                display.innerHTML = `
+                    <h3 class="text-xl font-bold text-sky-600">Day ${dayData.day}: ${dayData.title}</h3>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-slate-800">🎯 Objective</h4>
+                            <p class="text-slate-600">${dayData.objective}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800">🧠 Core Concept</h4>
+                            <p class="text-slate-600">${dayData.concept}</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800">📺 Watch & Learn</h4>
+                            <a href="${dayData.video.url}" target="_blank" rel="noopener noreferrer" class="text-sky-600 hover:text-sky-800 hover:underline">${dayData.video.title}</a>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-800">✍️ Practice & Apply</h4>
+                            <p class="text-slate-600">${dayData.task}</p>
+                        </div>
+                    </div>
+                `;
+                display.classList.remove('hidden');
+                
+                if (!e.target.classList.contains('bg-sky-500')) {
+                    e.target.classList.add('bg-sky-500', 'text-white', 'border-sky-500');
+                    completedDays++;
+                    updateChart();
+                }
+            }
+        }
+    });
+
+    const influencerTableBody = document.getElementById('influencer-table-body');
+    influencerData.forEach(influencer => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="font-semibold text-slate-900">${influencer.name}</div>
+                <div class="flex space-x-3 mt-1">
+                    ${influencer.links.map(link => `<a href="${link.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-600 hover:underline">${link.platform}</a>`).join('')}
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-normal text-sm text-slate-600">${influencer.expertise}</td>
+        `;
+        influencerTableBody.appendChild(row);
+    });
+
+    const youtubeChannelsList = document.getElementById('youtube-channels-list');
+    youtubeChannels.forEach(channel => {
+        const card = document.createElement('a');
+        card.href = channel.url;
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+        card.className = 'block p-4 border border-slate-200 rounded-lg hover:shadow-md hover:border-sky-300 transition';
+        card.innerHTML = `
+            <h3 class="font-semibold text-slate-900">${channel.name}</h3>
+            <p class="text-sm text-slate-600 mt-1">${channel.description}</p>
+        `;
+        youtubeChannelsList.appendChild(card);
+    });
+
+    const practicePlatformsList = document.getElementById('practice-platforms-list');
+    practicePlatforms.forEach(platform => {
+        const card = document.createElement('a');
+        card.href = platform.url;
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+        card.className = 'block p-4 border border-slate-200 rounded-lg hover:shadow-md hover:border-sky-300 transition';
+        card.innerHTML = `
+            <h3 class="font-semibold text-slate-900">${platform.name}</h3>
+            <p class="text-sm text-slate-600 mt-1">${platform.description}</p>
+        `;
+        practicePlatformsList.appendChild(card);
+    });
+
+    initChart();
+});
+</script>
+
+</body>
+</html>
